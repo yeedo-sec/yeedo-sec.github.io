@@ -1,0 +1,245 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Java常见框架反序列化漏洞流量特征整理 | Yeedo's Blog</title><meta name="keywords" content="HW,JAVA,蓝队"><meta name="author" content="Yeedo"><meta name="copyright" content="Yeedo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言本文主要整理一些在HW行动即生产环境中常见的JAVA框架，红队识别其框架特征理论上除了指纹识别和漏洞点验证以外没有很好的识别方法，因此，本文着重介绍其常见漏洞。之后可能还会补充主要涉及到的框架有以下几种：    框架名称 漏洞编号    JBOSS CVE-2015-7501    CVE-2017-12149   Shiro Shiro-550    Shiro-721   Weblogic">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java常见框架反序列化漏洞流量特征整理">
+<meta property="og:url" content="http://yeedo-sec.github.io/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/index.html">
+<meta property="og:site_name" content="Yeedo&#39;s Blog">
+<meta property="og:description" content="前言本文主要整理一些在HW行动即生产环境中常见的JAVA框架，红队识别其框架特征理论上除了指纹识别和漏洞点验证以外没有很好的识别方法，因此，本文着重介绍其常见漏洞。之后可能还会补充主要涉及到的框架有以下几种：    框架名称 漏洞编号    JBOSS CVE-2015-7501    CVE-2017-12149   Shiro Shiro-550    Shiro-721   Weblogic">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2022/03/23/QBwW5iFuOCLgYpr.png">
+<meta property="article:published_time" content="2022-03-22T13:49:33.000Z">
+<meta property="article:modified_time" content="2022-03-22T16:34:55.864Z">
+<meta property="article:author" content="Yeedo">
+<meta property="article:tag" content="HW">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="蓝队">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2022/03/23/QBwW5iFuOCLgYpr.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://yeedo-sec.github.io/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"OZSBEE2KTG","apiKey":"ac8b7df79ad351c43f2b308e5f421e7c","indexName":"yeedo","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Java常见框架反序列化漏洞流量特征整理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-23 00:34:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://s1.ax1x.com/2022/03/18/qFSTaj.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/bili/"><i class="fa-fw fa-brands fa-bilibili"></i><span> 追番列表</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://s2.loli.net/2022/03/23/QBwW5iFuOCLgYpr.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Yeedo's Blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/bili/"><i class="fa-fw fa-brands fa-bilibili"></i><span> 追番列表</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Java常见框架反序列化漏洞流量特征整理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-22T13:49:33.000Z" title="发表于 2022-03-22 21:49:33">2022-03-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-22T16:34:55.864Z" title="更新于 2022-03-23 00:34:55">2022-03-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/HW%E8%A1%8C%E5%8A%A8/">HW行动</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Java常见框架反序列化漏洞流量特征整理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文主要整理一些在HW行动即生产环境中常见的JAVA框架，红队识别其框架特征理论上除了指纹识别和漏洞点验证以外没有很好的识别方法，因此，本文着重介绍其常见漏洞。之后可能还会补充<br>主要涉及到的框架有以下几种：</p>
+<table>
+<thead>
+<tr>
+<th>框架名称</th>
+<th>漏洞编号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JBOSS</td>
+<td>CVE-2015-7501</td>
+</tr>
+<tr>
+<td></td>
+<td>CVE-2017-12149</td>
+</tr>
+<tr>
+<td>Shiro</td>
+<td>Shiro-550</td>
+</tr>
+<tr>
+<td></td>
+<td>Shiro-721</td>
+</tr>
+<tr>
+<td>Weblogic</td>
+<td>CVE-2019-2725</td>
+</tr>
+<tr>
+<td>Fastjson</td>
+<td>CVE-2017-18349</td>
+</tr>
+</tbody></table>
+<h1 id="指纹识别工具"><a href="#指纹识别工具" class="headerlink" title="指纹识别工具"></a>指纹识别工具</h1><p>在线指纹识别网站有很多，大家可以自行选择，在这里只推荐我觉得好用的一个插件(不是因为穷买不起云悉)</p>
+<h2 id="Wappalyzer"><a href="#Wappalyzer" class="headerlink" title="Wappalyzer"></a>Wappalyzer</h2><p><img src="https://s2.loli.net/2022/03/22/B58NWOcRhzJtAob.png" alt="Wappalyzer"><br>Wappalyzer插件是一款专为谷歌浏览器的打造的浏览插件，插件功能强大全面，简单易用，使用后可以帮助用户更轻松便捷的分析网站信息，还可以分析目标网站使用的平台架构，网站环境，服务器配置环境，JavaScript框架，编程语言和其他参数。<br>使用起来也很简单，加入到chrome的插件里直接就可以使用了，访问页面的时候点击右上角即可查看。</p>
+<h2 id="TideFinger"><a href="#TideFinger" class="headerlink" title="TideFinger"></a>TideFinger</h2><p>TideFinger是一款国内团队开发的指纹识别工具，使用起来也很简单。<br>附上github链接地址(<a target="_blank" rel="noopener" href="https://github.com/TideSec/TideFinger">https://github.com/TideSec/TideFinger</a>)<br>具体的安装方法不再赘述，主要介绍一下使用方法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ python3 TideFinger.py</span><br><span class="line"></span><br><span class="line">    Usage: python3 TideFinger.py -u http://www.123.com [-p 1] [-m 50] [-t 5] [-d 0]</span><br><span class="line"></span><br><span class="line">    -u: 待检测目标URL地址</span><br><span class="line">    -p: 指定该选项为1后，说明启用代理检测，请确保代理文件名为proxys_ips.txt,每行一条代理，格式如: 124.225.223.101:80</span><br><span class="line">    -m: 指纹匹配的线程数，不指定时默认为50</span><br><span class="line">    -t: 网站响应超时时间，默认为5秒</span><br><span class="line">    -d: 是否启用目录匹配式指纹探测（会对目标站点发起大量请求），0为不启用，1为启用，默认为不启用。</span><br></pre></td></tr></table></figure>
+<h3 id="e-g"><a href="#e-g" class="headerlink" title="e.g.:"></a>e.g.:</h3><p><img src="https://s2.loli.net/2022/03/22/JLwlzE9vRHD2djp.png" alt="TideFinger"></p>
+<h3 id="和Wappalyzer对比"><a href="#和Wappalyzer对比" class="headerlink" title="和Wappalyzer对比"></a>和Wappalyzer对比</h3><p><img src="https://s2.loli.net/2022/03/22/pPTAVxiwvY8Lcos.png" alt="20220322223408"></p>
+<blockquote>
+<p>所以我还是感觉Wappalyzer好用一点</p>
+</blockquote>
+<h1 id="JBoss反序列化漏洞（CVE-2015-7501）"><a href="#JBoss反序列化漏洞（CVE-2015-7501）" class="headerlink" title="JBoss反序列化漏洞（CVE-2015-7501）"></a>JBoss反序列化漏洞（CVE-2015-7501）</h1><h2 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>JBoss在<code>/invoker/JMXInvokerServlet</code>请求中读取了用户传入的对象，可以通过<code>Apache Commons Collections</code>中的Gadget执行任意代码</p>
+<h2 id="漏洞识别"><a href="#漏洞识别" class="headerlink" title="漏洞识别"></a>漏洞识别</h2><p>访问<code>invoker/JMXInvokerServlet</code>出现下载即表示漏洞存在</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
+<li>JBoss Enterprise Application Platform 6.4.4,5.2.0,4.3.0_CP10</li>
+<li>JBoss AS (Wildly) 6 and earlier</li>
+<li>JBoss A-MQ 6.2.0</li>
+<li>JBoss Fuse 6.2.0</li>
+<li>JBoss SOA Platform (SOA-P) 5.3.1</li>
+<li>JBoss Data Grid (JDG) 6.5.0</li>
+<li>JBoss BRMS (BRMS) 6.1.0</li>
+<li>JBoss BPMS (BPMS) 6.1.0</li>
+<li>JBoss Data Virtualization (JDV) 6.1.0</li>
+<li>JBoss Fuse Service Works (FSW) 6.0.0</li>
+<li>JBoss Enterprise Web Server (EWS) 2.1,3.0</li>
+</ul>
+<h2 id="流量特征"><a href="#流量特征" class="headerlink" title="流量特征"></a>流量特征</h2><ol>
+<li>目标url:<a target="_blank" rel="noopener" href="http://123.58.236.76:26022/invoker/JMXInvokerServlet">http://123.58.236.76:26022/invoker/JMXInvokerServlet</a></li>
+<li>攻击流量：<br><img src="https://s2.loli.net/2022/03/22/4FZtRpwo1LejQ7m.png" alt="20220322232420"></li>
+</ol>
+<h1 id="JBoss反序列化漏洞2（CVE-2017-12149）"><a href="#JBoss反序列化漏洞2（CVE-2017-12149）" class="headerlink" title="JBoss反序列化漏洞2（CVE-2017-12149）"></a>JBoss反序列化漏洞2（CVE-2017-12149）</h1><h2 id="漏洞原理-1"><a href="#漏洞原理-1" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><blockquote>
+<p>原文来自知乎（<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/33532884%EF%BC%89">https://zhuanlan.zhihu.com/p/33532884）</a></p>
+</blockquote>
+<p>漏洞出现在 Jboss 的 HttpInvoker 组件中的 ReadOnlyAccessFilter 过滤器中，源码在<code>jboss\server\all\deploy\httpha-invoker.sar\invoker.war\WEB-INF\classes\org\jboss\invocation\http\servlet</code>目录下的<code>ReadOnlyAccessFilter.class</code>文件中<br>其中<code>doFilter()</code>函数代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doFilter</span><span class="params">(ServletRequest request, ServletResponse response, FilterChain chain)</span></span><br><span class="line">    <span class="keyword">throws</span> IOException, ServletException</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="type">HttpServletRequest</span> <span class="variable">httpRequest</span> <span class="operator">=</span> (HttpServletRequest)request;</span><br><span class="line">    <span class="type">Principal</span> <span class="variable">user</span> <span class="operator">=</span> httpRequest.getUserPrincipal();</span><br><span class="line">    <span class="keyword">if</span> ((user == <span class="literal">null</span>) &amp;&amp; (<span class="built_in">this</span>.readOnlyContext != <span class="literal">null</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="type">ServletInputStream</span> <span class="variable">sis</span> <span class="operator">=</span> request.getInputStream();</span><br><span class="line">      <span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(sis);</span><br><span class="line">      <span class="type">MarshalledInvocation</span> <span class="variable">mi</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">      <span class="keyword">try</span></span><br><span class="line">      &#123;</span><br><span class="line">        mi = (MarshalledInvocation)ois.readObject();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (ClassNotFoundException e)</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServletException</span>(<span class="string">&quot;Failed to read MarshalledInvocation&quot;</span>, e);</span><br><span class="line">      &#125;</span><br><span class="line">      request.setAttribute(<span class="string">&quot;MarshalledInvocation&quot;</span>, mi);</span><br><span class="line"></span><br><span class="line">      mi.setMethodMap(<span class="built_in">this</span>.namingMethodMap);</span><br><span class="line">      <span class="type">Method</span> <span class="variable">m</span> <span class="operator">=</span> mi.getMethod();</span><br><span class="line">      <span class="keyword">if</span> (m != <span class="literal">null</span>) &#123;</span><br><span class="line">        validateAccess(m, mi);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    chain.doFilter(request, response);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到其直接从http中获取数据，在没有进行检查或者过滤的情况下，尝试调用readobject()方法对数据流进行反序列操作，因此产生了Java反序列化漏洞。</p>
+<h2 id="影响版本-1"><a href="#影响版本-1" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
+<li>JbossAS 5.X</li>
+<li>JbossAS 6.x</li>
+</ul>
+<h2 id="流量特征-1"><a href="#流量特征-1" class="headerlink" title="流量特征"></a>流量特征</h2><ol>
+<li>目标URL：<a target="_blank" rel="noopener" href="http://jboss/invoker/readonly">http://JBOSS/invoker/readonly</a></li>
+<li>攻击流量：<br><img src="https://s2.loli.net/2022/03/22/rXnExBNiLZsSvPM.png" alt="JbossPoc1"></li>
+</ol>
+<h1 id="Shiro-550"><a href="#Shiro-550" class="headerlink" title="Shiro-550"></a>Shiro-550</h1><h2 id="漏洞原理-2"><a href="#漏洞原理-2" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>Apache Shiro默认使用了CookieRememberMeManager，其处理cookie的流程是：得到rememberMe的cookie值-&gt;Base64解码–&gt;AES解密–&gt;反序列化。然而AES的密钥是硬编码的，就导致了攻击者可以构造恶意数据造成反序列化的RCE漏洞。</p>
+<h2 id="漏洞特征"><a href="#漏洞特征" class="headerlink" title="漏洞特征"></a>漏洞特征</h2><p>shiro反序列化的特征：在返回包的 Set-Cookie 中存在 <code>rememberMe=deleteMe</code> 字段</p>
+<h2 id="影响版本-2"><a href="#影响版本-2" class="headerlink" title="影响版本"></a>影响版本</h2><p>Apache Shiro &lt;= 1.2.4</p>
+<h2 id="流量特征-2"><a href="#流量特征-2" class="headerlink" title="流量特征"></a>流量特征</h2><p><img src="https://s2.loli.net/2022/03/22/SftFcyBIEDnJb4N.png" alt="shiro-550"></p>
+<h1 id="Shiro-721"><a href="#Shiro-721" class="headerlink" title="Shiro-721"></a>Shiro-721</h1><h2 id="漏洞原理-3"><a href="#漏洞原理-3" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>由于Apache Shiro cookie中通过 AES-128-CBC 模式加密的rememberMe字段存在问题，用户可通过Padding Oracle 加密生成的攻击代码来构造恶意的rememberMe字段，并重新请求网站，进行反序列化攻击，最终导致任意代码执行。</p>
+<h2 id="漏洞特征-1"><a href="#漏洞特征-1" class="headerlink" title="漏洞特征"></a>漏洞特征</h2><p>shiro反序列化的特征：在返回包的 Set-Cookie 中存在 <code>rememberMe=deleteMe</code> 字段</p>
+<h2 id="影响版本-3"><a href="#影响版本-3" class="headerlink" title="影响版本"></a>影响版本</h2><p>Apache Shiro &lt; 1.4.2</p>
+<h2 id="流量特征-3"><a href="#流量特征-3" class="headerlink" title="流量特征"></a>流量特征</h2><p>环境问题，用张网图，之后配置好了再补<br><img src="https://s2.loli.net/2022/03/23/6nzOB45VjgGJRXW.png" alt="Shiro-721"></p>
+<h1 id="Weblogic反序列化漏洞（CVE-2019-2725）"><a href="#Weblogic反序列化漏洞（CVE-2019-2725）" class="headerlink" title="Weblogic反序列化漏洞（CVE-2019-2725）"></a>Weblogic反序列化漏洞（CVE-2019-2725）</h1><h2 id="漏洞原理-4"><a href="#漏洞原理-4" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>CVE-2019-2725是一个Oracle weblogic反序列化远程命令执行漏洞，这个漏洞依旧是根据weblogic的xmldecoder反序列化漏洞，通过针对Oracle官网历年来的补丁构造payload来绕过。</p>
+<h2 id="漏洞特征-2"><a href="#漏洞特征-2" class="headerlink" title="漏洞特征"></a>漏洞特征</h2><p>访问/_async/AsyncResponseService成功说明存在该漏洞<br><img src="https://s2.loli.net/2022/03/23/sp4xa3HFe6cbh9N.png" alt="20220323001831"></p>
+<h2 id="影响版本-4"><a href="#影响版本-4" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
+<li>weblogic 10.x</li>
+<li>weblogic 12.1.3</li>
+</ul>
+<h2 id="流量特征-4"><a href="#流量特征-4" class="headerlink" title="流量特征"></a>流量特征</h2><ol>
+<li>目标URL：<a target="_blank" rel="noopener" href="http://weblogic/_async/AsyncResponseService">http://weblogic/_async/AsyncResponseService</a></li>
+<li>攻击流量：<br><img src="https://s2.loli.net/2022/03/23/QUeEbkSgBIMZmui.png" alt="20220323002036"></li>
+</ol>
+<h1 id="Fastjson-1-2-24-反序列化（CVE-2017-18349）"><a href="#Fastjson-1-2-24-反序列化（CVE-2017-18349）" class="headerlink" title="Fastjson 1.2.24 反序列化（CVE-2017-18349）"></a>Fastjson 1.2.24 反序列化（CVE-2017-18349）</h1><h2 id="漏洞原理-5"><a href="#漏洞原理-5" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>fastjson在解析json的过程中，支持使用autoType来实例化某一个具体的类，并调用该类的set/get方法来访问属性。通过查找代码中相关的方法，即可构造出一些恶意利用链。</p>
+<h2 id="影响版本-5"><a href="#影响版本-5" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
+<li>fastjson&lt;=1.2.24</li>
+</ul>
+<h2 id="流量特征-5"><a href="#流量特征-5" class="headerlink" title="流量特征"></a>流量特征</h2><p><img src="https://s2.loli.net/2022/03/23/bZPi8p4DWYEQyqo.png" alt="20220323002936"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Yeedo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://yeedo-sec.github.io/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/">http://yeedo-sec.github.io/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://yeedo-sec.github.io" target="_blank">Yeedo's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HW/">HW</a><a class="post-meta__tags" href="/tags/JAVA/">JAVA</a><a class="post-meta__tags" href="/tags/%E8%93%9D%E9%98%9F/">蓝队</a></div><div class="post_share"><div class="social-share" data-image="https://s2.loli.net/2022/03/23/QBwW5iFuOCLgYpr.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://s1.ax1x.com/2022/03/18/qFSTaj.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Yeedo</div><div class="author-info__description"></div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yeedo-sec"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yeedo-sec" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:Yeedo_h@foxmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a><a class="social-icon" href="https://space.bilibili.com/4564797" target="_blank" title="BiliBili"><i class="fa-brands fa-bilibili"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB%E5%B7%A5%E5%85%B7"><span class="toc-number">2.</span> <span class="toc-text">指纹识别工具</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Wappalyzer"><span class="toc-number">2.1.</span> <span class="toc-text">Wappalyzer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TideFinger"><span class="toc-number">2.2.</span> <span class="toc-text">TideFinger</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#e-g"><span class="toc-number">2.2.1.</span> <span class="toc-text">e.g.:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%92%8CWappalyzer%E5%AF%B9%E6%AF%94"><span class="toc-number">2.2.2.</span> <span class="toc-text">和Wappalyzer对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JBoss%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2015-7501%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">JBoss反序列化漏洞（CVE-2015-7501）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%86%E5%88%AB"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞识别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="toc-number">3.3.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81"><span class="toc-number">3.4.</span> <span class="toc-text">流量特征</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JBoss%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E2%EF%BC%88CVE-2017-12149%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">JBoss反序列化漏洞2（CVE-2017-12149）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86-1"><span class="toc-number">4.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-1"><span class="toc-number">4.2.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81-1"><span class="toc-number">4.3.</span> <span class="toc-text">流量特征</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Shiro-550"><span class="toc-number">5.</span> <span class="toc-text">Shiro-550</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86-2"><span class="toc-number">5.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%89%B9%E5%BE%81"><span class="toc-number">5.2.</span> <span class="toc-text">漏洞特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-2"><span class="toc-number">5.3.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81-2"><span class="toc-number">5.4.</span> <span class="toc-text">流量特征</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Shiro-721"><span class="toc-number">6.</span> <span class="toc-text">Shiro-721</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86-3"><span class="toc-number">6.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%89%B9%E5%BE%81-1"><span class="toc-number">6.2.</span> <span class="toc-text">漏洞特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-3"><span class="toc-number">6.3.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81-3"><span class="toc-number">6.4.</span> <span class="toc-text">流量特征</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Weblogic%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2019-2725%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">Weblogic反序列化漏洞（CVE-2019-2725）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86-4"><span class="toc-number">7.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%89%B9%E5%BE%81-2"><span class="toc-number">7.2.</span> <span class="toc-text">漏洞特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-4"><span class="toc-number">7.3.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81-4"><span class="toc-number">7.4.</span> <span class="toc-text">流量特征</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Fastjson-1-2-24-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88CVE-2017-18349%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">Fastjson 1.2.24 反序列化（CVE-2017-18349）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86-5"><span class="toc-number">8.1.</span> <span class="toc-text">漏洞原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-5"><span class="toc-number">8.2.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81-5"><span class="toc-number">8.3.</span> <span class="toc-text">流量特征</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/" title="Java常见框架反序列化漏洞流量特征整理"><img src="https://s2.loli.net/2022/03/23/QBwW5iFuOCLgYpr.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java常见框架反序列化漏洞流量特征整理"/></a><div class="content"><a class="title" href="/2022/03/22/Java%E5%B8%B8%E8%A7%81%E6%A1%86%E6%9E%B6%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E6%95%B4%E7%90%86/" title="Java常见框架反序列化漏洞流量特征整理">Java常见框架反序列化漏洞流量特征整理</a><time datetime="2022-03-22T13:49:33.000Z" title="发表于 2022-03-22 21:49:33">2022-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By Yeedo</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Algolia</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-stats"></div></div></div></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
