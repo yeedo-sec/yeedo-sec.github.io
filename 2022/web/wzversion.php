@@ -1,1 +1,0 @@
-<?php return array ('ver' => '112.0');?>
